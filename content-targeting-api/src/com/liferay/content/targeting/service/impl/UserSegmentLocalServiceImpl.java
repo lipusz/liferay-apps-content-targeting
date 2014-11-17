@@ -123,23 +123,6 @@ public class UserSegmentLocalServiceImpl
 				serviceContext.getGuestPermissions());
 		}
 
-		// Categories
-
-		Group scopeGroup = serviceContext.getScopeGroup();
-
-		if (scopeGroup.hasStagingGroup()) {
-			Group stagingGroup = scopeGroup.getStagingGroup();
-
-			ServiceContext serviceContextStaging =
-				(ServiceContext)serviceContext.clone();
-
-			serviceContextStaging.setScopeGroupId(stagingGroup.getGroupId());
-			serviceContextStaging.setUuid(assetCategory.getUuid());
-
-			addUserSegmentCategory(
-				userId, nameMap, descriptionMap, serviceContextStaging);
-		}
-
 		return userSegment;
 	}
 
