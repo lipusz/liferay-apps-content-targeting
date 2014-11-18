@@ -92,10 +92,23 @@ public class UserSegmentLocalServiceImpl
 
 		userSegment.setGroupId(groupId);
 
-		AssetCategory assetCategory = addUserSegmentCategory(
-			userId, nameMap, descriptionMap, serviceContext);
+		// Category
 
-		userSegment.setAssetCategoryId(assetCategory.getCategoryId());
+		long assetCategoryId = 0;
+
+		long[] assetCategoryIds = serviceContext.getAssetCategoryIds();
+
+		if (Validator.isNotNull(assetCategoryIds)) {
+			assetCategoryId = assetCategoryIds[0];
+		}
+		else {
+			AssetCategory assetCategory = addUserSegmentCategory(
+				userId, nameMap, descriptionMap, serviceContext);
+
+			assetCategoryId = assetCategory.getCategoryId();
+		}
+
+		userSegment.setAssetCategoryId(assetCategoryId);
 		userSegment.setCompanyId(user.getCompanyId());
 		userSegment.setUserId(user.getUserId());
 		userSegment.setUserName(user.getFullName());
