@@ -17,9 +17,13 @@ package com.liferay.content.targeting.api.model;
 import com.liferay.content.targeting.InvalidTrackingActionException;
 import com.liferay.content.targeting.model.TrackingActionInstance;
 import com.liferay.content.targeting.util.ContentTargetingContextUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
 
 import java.util.Locale;
@@ -47,6 +51,19 @@ public abstract class BaseTrackingAction implements TrackingAction {
 			_log.debug(
 				"Tracking Action deactivate: " + getClass().getSimpleName());
 		}
+	}
+
+	@Override
+	public void deleteData(TrackingActionInstance trackingActionInstance)
+		throws PortalException, SystemException {
+	}
+
+	@Override
+	public void exportData(
+			PortletDataContext portletDataContext,
+			Element trackingInstanceElement,
+			TrackingActionInstance trackingActionInstance)
+		throws Exception {
 	}
 
 	@Override
@@ -113,6 +130,13 @@ public abstract class BaseTrackingAction implements TrackingAction {
 	@Override
 	public String getTrackingActionKey() {
 		return getClass().getSimpleName();
+	}
+
+	@Override
+	public void importData(
+			PortletDataContext portletDataContext,
+			TrackingActionInstance trackingActionInstance)
+		throws Exception {
 	}
 
 	@Override

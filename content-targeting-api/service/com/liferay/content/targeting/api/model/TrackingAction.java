@@ -16,6 +16,10 @@ package com.liferay.content.targeting.api.model;
 
 import com.liferay.content.targeting.InvalidTrackingActionException;
 import com.liferay.content.targeting.model.TrackingActionInstance;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.PortletDataContext;
+import com.liferay.portal.kernel.xml.Element;
 
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +36,15 @@ public interface TrackingAction {
 	public void activate();
 
 	public void deActivate();
+
+	public void deleteData(TrackingActionInstance trackingActionInstance)
+		throws PortalException, SystemException;;
+
+	public void exportData(
+			PortletDataContext portletDataContext,
+			Element trackingInstanceElement,
+			TrackingActionInstance trackingActionInstance)
+		throws Exception;
 
 	public String getDescription(Locale locale);
 
@@ -51,6 +64,11 @@ public interface TrackingAction {
 		TrackingActionInstance trackingActionInstance, Locale locale);
 
 	public String getTrackingActionKey();
+
+	public void importData(
+			PortletDataContext portletDataContext,
+			TrackingActionInstance trackingActionInstance)
+		throws Exception;
 
 	public boolean isInstantiable();
 

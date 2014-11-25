@@ -14,8 +14,11 @@
 
 package com.liferay.content.targeting.lar;
 
+import com.liferay.content.targeting.api.model.Rule;
+import com.liferay.content.targeting.api.model.RulesRegistry;
 import com.liferay.content.targeting.model.RuleInstance;
 import com.liferay.content.targeting.service.RuleInstanceLocalServiceUtil;
+import com.liferay.osgi.util.service.ServiceTrackerUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
@@ -24,6 +27,11 @@ import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.service.ServiceContext;
 
+import javax.portlet.UnavailableException;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+
 /**
  * @author Eduardo Garcia
  */
@@ -31,6 +39,24 @@ public class RuleInstanceStagedModelDataHandler
 	extends BaseStagedModelDataHandler<RuleInstance> {
 
 	public static final String[] CLASS_NAMES = {RuleInstance.class.getName()};
+
+	public RuleInstanceStagedModelDataHandler() throws UnavailableException {
+		Bundle bundle = FrameworkUtil.getBundle(getClass());
+
+		if (bundle == null) {
+			throw new UnavailableException(
+				"Can't find a reference to the OSGi bundle") {
+
+				@Override
+				public boolean isPermanent() {
+					return true;
+				}
+			};
+		}
+
+		_rulesRegistry = ServiceTrackerUtil.getService(
+			RulesRegistry.class, bundle.getBundleContext());
+	}
 
 	@Override
 	public void deleteStagedModel(
@@ -42,6 +68,12 @@ public class RuleInstanceStagedModelDataHandler
 				uuid, groupId);
 
 		if (ruleInstance != null) {
+			Rule rule = _rulesRegistry.getRule(ruleInstance.getRuleKey());
+
+			if (rule != null) {
+				rule.deleteData(ruleInstance);
+			}
+
 			RuleInstanceLocalServiceUtil.deleteRuleInstance(ruleInstance);
 		}
 	}
@@ -58,6 +90,13 @@ public class RuleInstanceStagedModelDataHandler
 
 		Element ruleInstanceElement = portletDataContext.getExportDataElement(
 			ruleInstance);
+
+		Rule rule = _rulesRegistry.getRule(ruleInstance.getRuleKey());
+
+		if (rule != null) {
+			rule.exportData(
+				portletDataContext, ruleInstanceElement, ruleInstance);
+		}
 
 		portletDataContext.addClassedModel(
 			ruleInstanceElement,
@@ -95,8 +134,16 @@ public class RuleInstanceStagedModelDataHandler
 					ruleInstance.getTypeSettings(), serviceContext);
 		}
 
+		Rule rule = _rulesRegistry.getRule(ruleInstance.getRuleKey());
+
+		if (rule != null) {
+			rule.importData(portletDataContext, importedRuleInstance);
+		}
+
 		portletDataContext.importClassedModel(
 			ruleInstance, importedRuleInstance);
 	}
+
+	private RulesRegistry _rulesRegistry;
 
 }

@@ -17,6 +17,10 @@ package com.liferay.content.targeting.api.model;
 import com.liferay.content.targeting.InvalidRuleException;
 import com.liferay.content.targeting.anonymous.users.model.AnonymousUser;
 import com.liferay.content.targeting.model.RuleInstance;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.PortletDataContext;
+import com.liferay.portal.kernel.xml.Element;
 
 import java.util.Locale;
 import java.util.Map;
@@ -44,6 +48,9 @@ public interface Rule {
 	 */
 	public void deActivate();
 
+	public void deleteData(RuleInstance ruleInstance)
+		throws PortalException, SystemException;
+
 	/**
 	 * Returns <code>true</code> if the user complies with the rule instance.
 	 *
@@ -55,6 +62,11 @@ public interface Rule {
 	public boolean evaluate(
 			HttpServletRequest request, RuleInstance ruleInstance,
 			AnonymousUser anonymousUser)
+		throws Exception;
+
+	public void exportData(
+			PortletDataContext portletDataContext, Element ruleInstanceElement,
+			RuleInstance ruleInstance)
 		throws Exception;
 
 	/**
@@ -129,6 +141,10 @@ public interface Rule {
 	 * @return the rule instance's localized summary
 	 */
 	public String getSummary(RuleInstance ruleInstance, Locale locale);
+
+	public void importData(
+			PortletDataContext portletDataContext, RuleInstance ruleInstance)
+		throws Exception;
 
 	/**
 	 * Returns <code>true</code> if the rule can be used more than once with
