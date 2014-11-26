@@ -24,11 +24,13 @@ import com.liferay.content.targeting.model.RuleInstance;
 import com.liferay.content.targeting.rule.categories.BehaviorRuleCategory;
 import com.liferay.content.targeting.util.ContentTargetingContextUtil;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
@@ -42,8 +44,6 @@ import javax.portlet.PortletResponse;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -75,8 +75,6 @@ public class PageVisitedRule extends BaseRule {
 
 		long plid = GetterUtil.getLong(ruleInstance.getTypeSettings());
 
-		Bundle bundle = FrameworkUtil.getBundle(getClass());
-
 		int count = _analyticsEventLocalService.getAnalyticsEventsCount(
 			anonymousUser.getAnonymousUserId(), Layout.class.getName(), plid,
 			"view");
@@ -86,6 +84,21 @@ public class PageVisitedRule extends BaseRule {
 		}
 
 		return false;
+	}
+
+	@Override
+	public void exportData(
+			PortletDataContext portletDataContext, Element ruleInstanceElement,
+			RuleInstance ruleInstance)
+		throws Exception {
+
+		long plid = GetterUtil.getLong(ruleInstance.getTypeSettings());
+
+		Layout layout = LayoutLocalServiceUtil.fetchLayout(plid);
+
+		if (layout != null ) {
+			ruleInstance.setTypeSettings(layout.getUuid());
+		}
 	}
 
 	@Override
@@ -115,6 +128,21 @@ public class PageVisitedRule extends BaseRule {
 		}
 
 		return StringPool.BLANK;
+	}
+
+	@Override
+	public void importData(
+			PortletDataContext portletDataContext, RuleInstance ruleInstance)
+		throws Exception {
+
+		String layoutUuid = ruleInstance.getTypeSettings();
+
+		Layout layout = LayoutLocalServiceUtil.fetchLayoutByUuidAndCompanyId(
+			layoutUuid, portletDataContext.getCompanyId());
+
+		if (layout != null ) {
+			ruleInstance.setTypeSettings(String.valueOf(layout.getPlid()));
+		}
 	}
 
 	@Override

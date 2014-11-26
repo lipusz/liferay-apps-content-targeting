@@ -26,10 +26,12 @@ import com.liferay.content.targeting.util.ContentTargetingContextUtil;
 import com.liferay.content.targeting.util.ContentTargetingUtil;
 import com.liferay.content.targeting.util.WebKeys;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
@@ -49,8 +51,6 @@ import javax.portlet.RenderRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -89,8 +89,6 @@ public class ContentVisitedRule extends BaseRule {
 			return false;
 		}
 
-		Bundle bundle = FrameworkUtil.getBundle(getClass());
-
 		int count = _analyticsEventLocalService.getAnalyticsEventsCount(
 			anonymousUser.getAnonymousUserId(), assetEntry.getClassName(),
 			assetEntry.getClassPK(), "view");
@@ -100,6 +98,22 @@ public class ContentVisitedRule extends BaseRule {
 		}
 
 		return false;
+	}
+
+	@Override
+	public void exportData(
+			PortletDataContext portletDataContext, Element ruleInstanceElement,
+			RuleInstance ruleInstance)
+		throws Exception {
+
+		long assetEntryId = GetterUtil.getLong(ruleInstance.getTypeSettings());
+
+		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+			assetEntryId);
+
+		if (assetEntry != null ) {
+			ruleInstance.setTypeSettings(assetEntry.getClassUuid());
+		}
 	}
 
 	@Override
@@ -129,6 +143,22 @@ public class ContentVisitedRule extends BaseRule {
 		}
 
 		return StringPool.BLANK;
+	}
+
+	@Override
+	public void importData(
+			PortletDataContext portletDataContext, RuleInstance ruleInstance)
+		throws Exception {
+
+		String classUuid = ruleInstance.getTypeSettings();
+
+		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+			portletDataContext.getScopeGroupId(), classUuid);
+
+		if (assetEntry != null ) {
+			ruleInstance.setTypeSettings(
+				String.valueOf(assetEntry.getEntryId()));
+		}
 	}
 
 	@Override
