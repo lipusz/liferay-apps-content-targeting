@@ -126,9 +126,11 @@ public class HotDeployTrackerComponent {
 
 	@Activate
 	protected void activate(final BundleContext bundleContext) {
+		ServiceTrackerCustomizer servletContextTracker =
+			new ServletContextTrackerCustomizer(bundleContext);
+
 		_serviceTracker = new ServiceTracker<ServletContext, ServletContext>(
-			bundleContext, ServletContext.class,
-			new ServletContextTrackerCustomizer());
+			bundleContext, ServletContext.class, servletContextTracker);
 
 		_serviceTracker.open();
 
@@ -163,6 +165,10 @@ public class HotDeployTrackerComponent {
 	private class ServletContextTrackerCustomizer
 		implements ServiceTrackerCustomizer<ServletContext, ServletContext> {
 
+		public ServletContextTrackerCustomizer(BundleContext context) {
+			_context = context;
+		}
+
 		@Override
 		public ServletContext addingService(
 			ServiceReference<ServletContext> serviceReference) {
@@ -175,7 +181,7 @@ public class HotDeployTrackerComponent {
 
 			BundleContext bundleContext = bundle.getBundleContext();
 
-			ServletContext servletContext = bundleContext.getService(
+			ServletContext servletContext = _context.getService(
 				serviceReference);
 
 			_osgiDeployContexts.putIfAbsent(
@@ -184,8 +190,6 @@ public class HotDeployTrackerComponent {
 
 			HotDeployUtil.fireDeployEvent(
 				new HotDeployEvent(servletContext, _getClassLoader(bundle)));
-
-			bundleContext.ungetService(serviceReference);
 
 			return servletContext;
 		}
@@ -203,16 +207,16 @@ public class HotDeployTrackerComponent {
 
 			Bundle bundle = serviceReference.getBundle();
 
-			BundleContext bundleContext = bundle.getBundleContext();
-
 			HotDeployUtil.fireUndeployEvent(
 				new HotDeployEvent(servletContext, _getClassLoader(bundle))
 			);
 
 			_osgiDeployContexts.remove(servletContext.getServletContextName());
 
-			bundleContext.ungetService(serviceReference);
+			_context.ungetService(serviceReference);
 		}
+
+		BundleContext _context;
 	}
 
 }
