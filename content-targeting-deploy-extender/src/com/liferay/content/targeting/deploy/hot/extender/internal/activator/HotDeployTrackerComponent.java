@@ -185,7 +185,7 @@ public class HotDeployTrackerComponent {
 			HotDeployUtil.fireDeployEvent(
 				new HotDeployEvent(servletContext, _getClassLoader(bundle)));
 
-			bundleContext.ungetService(serviceReference);
+//			bundleContext.ungetService(serviceReference);
 
 			return servletContext;
 		}
